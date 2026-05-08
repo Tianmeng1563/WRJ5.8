@@ -1,7 +1,7 @@
-streamlit==1.32.2
-folium==0.14.0
-streamlit-folium==0.15.0
-streamlit-option-menu==0.3.6
-pandas==2.0.3
-numpy==1.24.3
-shapely==2.0.1
+streamlit>=1.30.0
+folium>=0.14.0
+streamlit-folium>=0.16.0
+streamlit-option-menu>=0.3.6
+pandas>=2.0.0
+numpy>=1.24.0
+shapely>=2.0.0
