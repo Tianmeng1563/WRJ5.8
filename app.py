@@ -10,6 +10,9 @@ import os
 import numpy as np
 from shapely.geometry import LineString, Polygon
 
+# ===================== 页面配置（必须放最前面） =====================
+st.set_page_config(layout="wide", page_title="南科院无人机航线规划系统")
+
 # ===================== 数据持久化 =====================
 SAVE_FILE = "drone_data.json"
 def load_all_data():
@@ -42,9 +45,6 @@ default_states = {
 for key, val in default_states.items():
     if key not in st.session_state:
         st.session_state[key] = val
-
-# ===================== 页面配置 =====================
-st.set_page_config(layout="wide",page_title="南科院无人机航线规划系统")
 
 # ===================== 坐标转换 =====================
 def gcj02_to_wgs84(lng:float,lat:float):
@@ -217,7 +217,7 @@ if page=="航线规划":
     with col_map:
         center_lat=(st.session_state.A[0]+st.session_state.B[0])/2
         center_lon=(st.session_state.A[1]+st.session_state.B[1])/2
-        # 和截图一模一样的高德卫星地图
+        # 高德卫星地图（和截图一致）
         m=folium.Map(
             location=[center_lat,center_lon],
             zoom_start=19,
@@ -254,8 +254,8 @@ if page=="航线规划":
                 folium.PolyLine(safe_waypoints,color="#0066ff",weight=5,dash_array="10 5",popup="⭐ 安全绕飞航线").add_to(m)
             else:
                 folium.PolyLine(safe_waypoints,color="#0066ff",weight=4,opacity=0.8,popup="✅ 安全直飞航线").add_to(m)
-        # 修复关键：给st_folium加固定key，避免每次刷新重建DOM
-        output=st_folium(m,width=1150,height=720,key="main_map_3d")
+        # 关键修复：固定key，避免DOM冲突
+        output=st_folium(m,width=1150,height=720,key="main_map")
         if st.session_state.is_drawing and output and output.get("last_clicked"):
             now = time.time()
             if now - st.session_state.last_click_time > 0.5:
@@ -311,8 +311,8 @@ else:
         st.session_state.total_distance = round(total_dist * 111000, 2)
         if st.session_state.flight_running and not st.session_state.flight_paused:
             if st.session_state.current_wp_idx < len(st.session_state.flight_waypoints)-1:
-                st.session_state.current_wp_idx += 0.02
-                st.session_state.battery = max(0, st.session_state.battery - 0.02)
+                st.session_state.current_wp_idx += 0.01
+                st.session_state.battery = max(0, st.session_state.battery - 0.01)
                 st.session_state.elapsed_distance = round(st.session_state.current_wp_idx / (len(st.session_state.flight_waypoints)-1) * st.session_state.total_distance, 2)
             else:
                 st.session_state.flight_running = False
@@ -371,7 +371,7 @@ else:
             if len(st.session_state.flight_waypoints) > 0:
                 drone_pos = st.session_state.flight_waypoints[min(int(st.session_state.current_wp_idx), len(st.session_state.flight_waypoints)-1)]
                 folium.CircleMarker(drone_pos, radius=10, color="orange", fill=True, fill_color="orange", popup="🚁 无人机当前位置").add_to(m_flight)
-            # 修复关键：给飞行地图加固定key，避免DOM冲突
+            # 关键修复：固定key，避免DOM冲突
             st_folium(m_flight, width="100%", height=500, key="flight_map")
         with col_status:
             st.subheader("📡 通信链路拓扑与数据流")
@@ -383,7 +383,7 @@ else:
             st.info(f"🛫 飞行高度：{st.session_state.height} m")
             st.info(f"🛡️ 安全半径：{st.session_state.safe_radius}")
             st.info(f"🚧 障碍物数量：{len(st.session_state.polygon_memory)} 个")
-    # 修复关键：降低刷新频率，避免高频rerun导致的DOM冲突
+    # 关键修复：降低刷新频率，避免高频rerun
     if st.session_state.flight_running and not st.session_state.flight_paused:
-        time.sleep(0.3)
+        time.sleep(0.5)
         st.rerun()
